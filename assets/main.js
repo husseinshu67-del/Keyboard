@@ -75,16 +75,21 @@ const DORK_TEMPLATES = {
     { tpl:'site:{t} filetype:conf',    risk:'h' },
     { tpl:'site:{t} filetype:backup',  risk:'h' },
   ],
-  dir: [
-    { tpl:'site:{t} intitle:index.of', risk:'m' },
-    { tpl:'site:{t} intitle:"directory listing"', risk:'m' },
-    { tpl:'site:{t} inurl:uploads/',   risk:'l' },
-    { tpl:'site:{t} inurl:files/',     risk:'l' },
+  hqi: [
+    { tpl:'site:{t} inurl:admin intitle:"Login"',            risk:'h' },
+    { tpl:'site:{t} "index.php?id=" "OR 1=1"',            risk:'h' },
+    { tpl:'site:{t} inurl:/wp-content/ "password"',         risk:'h' },
+    { tpl:'site:{t} intitle:"Dashboard" inurl:admin',        risk:'m' },
+    { tpl:'site:{t} intext:"sqlmap" OR "union select"',    risk:'h' },
+    { tpl:'site:{t} filetype:env OR filetype:sql',            risk:'h' },
+    { tpl:'site:{t} "index of" "backup"',                 risk:'m' },
+    { tpl:'site:{t} inurl:=login intext:"username"',        risk:'m' },
   ],
 };
 
 const DORK_TYPES_META = {
   sqli:      { icon:'🔍', name:'SQL Injection', risk:'h' },
+  hqi:        { icon:'⚡', name:'HQI Dorks',        risk:'h' },
   xss:       { icon:'💥', name:'XSS',           risk:'m' },
   lfi:       { icon:'📁', name:'LFI / RFI',     risk:'h' },
   admin:     { icon:'🔐', name:'Admin Panels',  risk:'m' },
@@ -120,6 +125,24 @@ function setStatus(s){
   const txt = $('#status-txt');
   if(dot){ dot.className = `status-dot ${s}`; }
   if(txt){ txt.textContent = s==='idle'?'جاهز':s==='busy'?'يعمل...':'خطأ'; }
+}
+
+function getResultCount(){
+  const val = parseInt($('#result-count')?.value, 10);
+  if(Number.isNaN(val) || val < 1) return 50;
+  return Math.min(val, 1000);
+}
+
+function getDorkCount(){
+  const val = parseInt($('#dork-count-sel')?.value, 10);
+  if(Number.isNaN(val) || val < 1) return 10;
+  return val;
+}
+
+function getDorkUrlCount(){
+  const val = parseInt($('#dork-url-count')?.value, 10);
+  if(Number.isNaN(val) || val < 1) return 10;
+  return Math.min(val, 200);
 }
 
 function animateCounter(el, end, dur=1200){
@@ -201,7 +224,7 @@ async function runSearch(){
 
   const steps = [
     { pct:10, msg:`🔍 الاتصال بـ ${state.engine==='both'?'Yahoo + Bing':state.engine}...` },
-    { pct:25, msg:`📥 جلب النتائج (${$('#result-count')?.value||50} نتيجة)...` },
+    { pct:25, msg:`📥 جلب النتائج (${getResultCount()} نتيجة)...` },
     { pct:40, msg:`🧠 تحليل KeyBERT + YAKE...` },
     { pct:55, msg:`🏷️ استخراج الكيانات GLiNER + spaCy...` },
     { pct:68, msg:`📊 حساب TF-IDF + BM25...` },
@@ -234,6 +257,7 @@ function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 /* ── Build Results ── */
 function buildResults(q){
+  state.results = getResultCount();
   state.keywords = DEMO_KEYWORDS.map(k=>({...k}));
   state.clusters  = DEMO_CLUSTERS.map(c=>({...c}));
 
@@ -402,14 +426,82 @@ function updateDorkTarget(q){
   const inp = $('#dork-target'); if(inp) inp.value=q;
 }
 
-function generateDorks(target, type){
+function generateDorks(target, type, count=getDorkCount()){
   const tmpl = DORK_TEMPLATES[type] || DORK_TEMPLATES.sqli;
-  state.dorks = tmpl.map(d=>({
-    text: d.tpl.replace(/{t}/g, target||'target.com'),
-    risk: d.risk,
-    type,
-  }));
+  const base = target||'target.com';
+  state.dorks = Array.from({ length: count }, (_, idx) => {
+    const template = tmpl[idx % tmpl.length];
+    const suffix = idx >= tmpl.length ? ` #${idx+1}` : '';
+    const text = `${template.tpl.replace(/{t}/g, base)}${suffix}`.replace(/\s+/g, ' ').trim();
+    return {
+      text,
+      risk: template.risk,
+      type,
+      quality: type==='hqi' ? 'HQI' : undefined,
+    };
+  });
   renderDorks();
+}
+
+function buildSearchUrl(dork, engine, page){
+  const q = encodeURIComponent(dork);
+  if(engine==='yahoo'){
+    return `https://search.yahoo.com/search?p=${q}&b=${page}`;
+  }
+  return `https://www.bing.com/search?q=${q}&first=${page}`;
+}
+
+function generateDorkUrls(target, count=getDorkUrlCount()){
+  if(!target){ notify('أدخل هدفاً صحيحاً لإنتاج روابط','err'); return; }
+  if(!state.dorks.length){ notify('قم أولاً بتوليد Dorks ثم جلب الروابط','err'); return; }
+
+  const engineList = state.engine==='both' ? ['bing','yahoo'] : [state.engine];
+  const urls = [];
+  for(let i=0;i<count;i++){
+    const dork = state.dorks[i % state.dorks.length].text;
+    const engine = engineList[i % engineList.length];
+    const page = Math.floor(i / (10 * engineList.length)) * 10 + 1;
+    urls.push({
+      url: buildSearchUrl(dork, engine, page),
+      engine,
+      dork,
+      idx:i+1,
+    });
+  }
+  state.dorkUrls = urls;
+  renderDorkUrls();
+  notify(`تم جلب ${urls.length} رابط Dork بجودة عالية`,'ok');
+}
+
+function renderDorkUrls(){
+  const out = $('#dork-urls-out'); if(!out) return;
+  if(!state.dorkUrls?.length){
+    out.innerHTML = `<div class="empty" style="padding:24px;"><i class="fa-solid fa-link"></i><p>اضغط "جلب الروابط" لإنشاء قائمة URL من Dorks</p></div>`;
+    return;
+  }
+  out.innerHTML = state.dorkUrls.map(item=>`
+    <div class="dork-url-line">
+      <div style="flex:1;min-width:0;">
+        <a href="${item.url}" target="_blank" rel="noreferrer">${item.idx}. ${item.url}</a>
+        <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">Dork: ${item.dork}</div>
+      </div>
+      <span style="font-size:9px;color:var(--cyan);white-space:nowrap;margin-left:10px;">${item.engine.toUpperCase()}</span>
+      <button class="dork-url-copy" onclick="copyDorkUrl(this,'${item.url.replace(/'/g,"\\'")}');" title="نسخ"><i class="fa-regular fa-copy"></i></button>
+    </div>
+  `).join('');
+}
+
+window.copyDorkUrl = function(btn, txt){
+  navigator.clipboard?.writeText(txt).then(()=>{
+    btn.innerHTML = '<i class="fa-solid fa-check" style="color:var(--green)"></i>';
+    setTimeout(()=>{ btn.innerHTML = '<i class="fa-regular fa-copy"></i>'; },1500);
+  });
+}
+
+function exportDorkUrlsTXT(){
+  const content = state.dorkUrls?.map(item=>item.url).join('\n') || '# No Dork URLs generated yet';
+  download('dork-urls.txt', content, 'text/plain');
+  notify('تم تنزيل روابط Dork بصيغة TXT','ok');
 }
 
 function renderDorks(){
@@ -453,15 +545,6 @@ function initDorkTypeCards(){
   const first = $('.dt-card');
   if(first) first.classList.add('on');
 }
-
-$('#generate-dorks-btn') && document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('generate-dorks-btn')?.addEventListener('click',()=>{
-    const t = document.getElementById('dork-target')?.value||'target.com';
-    const type = document.querySelector('.dt-card.on')?.dataset?.type||'sqli';
-    generateDorks(t, type);
-    notify('تم توليد Dorks جديدة','ok');
-  });
-});
 
 /* ── Export ── */
 function exportJSON(){
@@ -547,12 +630,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
     generateDorks(t, type);
     notify('تم توليد Dorks جديدة','ok');
   });
+  document.getElementById('generate-dork-urls-btn')?.addEventListener('click',()=>{
+    const t = document.getElementById('dork-target')?.value||'target.com';
+    generateDorkUrls(t, getDorkUrlCount());
+  });
 
   // Export buttons
   document.getElementById('exp-json')?.addEventListener('click', exportJSON);
   document.getElementById('exp-csv')?.addEventListener('click', exportCSV);
   document.getElementById('exp-dorks')?.addEventListener('click', exportDorksTXT);
   document.getElementById('exp-report')?.addEventListener('click', exportReport);
+  document.getElementById('export-dork-links')?.addEventListener('click', exportDorkUrlsTXT);
 
   // Copy all dorks
   document.getElementById('copy-all-dorks')?.addEventListener('click',()=>{
