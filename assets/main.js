@@ -139,10 +139,12 @@ function getDorkCount(){
   return val;
 }
 
+// Increased the allowable Dork URL count to support large exports (e.g. 1000+)
 function getDorkUrlCount(){
   const val = parseInt($('#dork-url-count')?.value, 10);
   if(Number.isNaN(val) || val < 1) return 10;
-  return Math.min(val, 200);
+  // Allow larger request counts (up to 5000) — adjust if you need higher
+  return Math.min(val, 5000);
 }
 
 function animateCounter(el, end, dur=1200){
@@ -561,8 +563,26 @@ function exportDorksTXT(){
   download('dorks.txt', state.dorks.map(d=>d.text).join('\n') || '# No dorks generated yet', 'text/plain');
   notify('تم تصدير Dorks','ok');
 }
+
+// Fixed and robust exportReport implementation
 function exportReport(){
-  const content=`KEYWORD INTELLIGENCE ENGINE — Report\n${'='.repeat(50)}\nDate: ${new Date().toLocaleString()}\nEngine: ${state.engine}\nKeywords: ${state.keywords.length}\nClusters: ${state.clusters.length}\nDorks: ${state.dorks.length}\n\n${'─'.repeat(50)}\nTop Keywords:\n${state.keywords.map((k,i)=>`${i+1}. ${k.kw} [${k.type}] Score: ${k.score}`).join('\n')}\n\n${'─'.repeat(50)}\nGenerated Dorks:\n${state.dorks.map(d=>d.text).join('\n')}`;
+  const clustersCount = state.clusters?.length || 0;
+  const content = [
+    'KEYWORD INTELLIGENCE ENGINE — Report',
+    '='.repeat(50),
+    `Date: ${new Date().toLocaleString()}`,
+    `Engine: ${state.engine}`,
+    `Keywords: ${state.keywords.length}`,
+    `Clusters: ${clustersCount}`,
+    '',
+    '--- Keywords ---',
+    ...state.keywords.map(k => `- ${k.kw} (${k.type}) score:${k.score} freq:${k.freq}`),
+    '',
+    '--- Dorks ---',
+    ...state.dorks.map(d => `- ${d.text}`),
+    ''
+  ].join('\n');
+
   download('report.txt', content, 'text/plain');
   notify('تم تصدير التقرير','ok');
 }
