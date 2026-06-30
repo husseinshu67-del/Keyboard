@@ -27,31 +27,42 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-async function runTasks(dorks, perDork, maxLinks, engine, throttle) {
+// Improved runTasks: added retries, exponential backoff, concurrency control (single tab by default)
+async function runTasks(dorks, perDork, maxLinks, engine, throttle, opts={maxRetries:3}) {
   for (let i = 0; i < dorks.length; i++) {
     if (controller.cancelRequested) break;
     const d = dorks[i];
     chrome.runtime.sendMessage({ type: 'progress', text: `معالجة dork ${i+1}/${dorks.length}: ${d}` });
 
     let page = 0;
+    let consecutiveEmpty=0;
     while (aggregated.length < maxLinks) {
       if (controller.cancelRequested) break;
       const qurl = buildSearchUrl(engine, d, perDork, page);
       chrome.runtime.sendMessage({ type: 'progress', text: `فتح: ${qurl}` });
-      const tab = await createTab(qurl);
-      // انتظر إكتمال التحميل
-      await waitForTabComplete(tab.id);
-      // نفذ السكربت لاستخراج الروابط
-      let urls = [];
-      try {
-        urls = await executeScrape(tab.id, engine);
-      } catch (e) {
-        urls = [];
-      }
-      // أغلق التبويب
-      await closeTab(tab.id);
 
-      // أضف النتائج بشكل وحيد
+      let attempt = 0;
+      let urls = [];
+      while(attempt <= opts.maxRetries){
+        attempt++;
+        let tab = null;
+        try {
+          tab = await createTab(qurl);
+          await waitForTabComplete(tab.id, 20000 + attempt*3000);
+          urls = await executeScrape(tab.id, engine);
+        } catch (e) {
+          // on error, wait exponentially and retry
+          const waitMs = Math.min(3000 * Math.pow(2, attempt), 30000);
+          chrome.runtime.sendMessage({ type: 'progress', text: `خطأ بالصفحة، محاولة ${attempt}/${opts.maxRetries}. الانتظار ${waitMs}ms` });
+          await sleep(waitMs);
+          urls = [];
+        } finally {
+          if(tab) await closeTab(tab.id);
+        }
+        if(urls && urls.length>0) break;
+      }
+
+      // Add unique results
       for (const u of urls) {
         if (aggregated.length >= maxLinks) break;
         if (!aggregated.includes(u)) aggregated.push(u);
@@ -59,7 +70,13 @@ async function runTasks(dorks, perDork, maxLinks, engine, throttle) {
 
       chrome.runtime.sendMessage({ type: 'result', urls: aggregated });
 
-      if (!urls || urls.length < Math.max(1, perDork)) break; // لا مزيد من الصفحات المفيدة
+      if (!urls || urls.length < Math.max(1, perDork)) {
+        consecutiveEmpty++;
+        if(consecutiveEmpty>=2) break; // if two consecutive pages returned nothing useful, move to next dork
+      } else {
+        consecutiveEmpty=0;
+      }
+
       page++;
       // تأخير بين الطلبات
       await sleep(throttle || 2000);
@@ -183,6 +200,7 @@ function scrapePage(engine) {
       return true;
     });
 
+    // Limit per page to reduce noise
     return filtered.slice(0, 200);
   } catch (e) {
     return [];
