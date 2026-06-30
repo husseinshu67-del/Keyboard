@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Dork Link Collector",
+  "version": "1.0",
+  "description": "Collect URLs from search engine results using a list of dorks, then export as .txt (runs locally in the browser).",
+  "permissions": ["tabs", "scripting", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Dork Link Collector"
+  },
+  "host_permissions": [
+    "https://www.google.com/*",
+    "https://www.bing.com/*",
+    "https://duckduckgo.com/*",
+    "https://www.duckduckgo.com/*",
+    "https://search.yahoo.com/*",
+    "https://*.search.yahoo.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

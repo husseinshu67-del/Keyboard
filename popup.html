@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dork Collector</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Arial;min-width:320px;padding:10px}
+    textarea{width:100%;box-sizing:border-box}
+    input[type=number]{width:100px}
+    .row{display:flex;gap:8px;align-items:center;margin:6px 0}
+    #progress{margin:8px 0;color:#333}
+    #results{max-height:240px;overflow:auto;border:1px solid #ddd;padding:6px}
+    button{margin-top:6px}
+    label{font-size:13px}
+  </style>
+</head>
+<body dir="rtl">
+  <h3>جامع روابط بواسطة Dorks</h3>
+  <label>قائمة Dorks (سطر لكل dork)</label>
+  <textarea id="dorks" rows="6" placeholder="site:example.com filetype:pdf ..."></textarea>
+
+  <div class="row">
+    <label>نتائج لكل dork:
+      <input id="perDork" type="number" min="1" value="10">
+    </label>
+
+    <label>الحد الأقصى للروابط:
+      <input id="maxLinks" type="number" min="1" value="100">
+    </label>
+  </div>
+
+  <div class="row">
+    <label>محرك البحث:
+      <select id="engine">
+        <option value="google">Google</option>
+        <option value="bing">Bing</option>
+        <option value="duckduckgo">DuckDuckGo</option>
+        <option value="yahoo">Yahoo</option>
+      </select>
+    </label>
+
+    <label>تأخير بين الطلبات (ms):
+      <input id="throttle" type="number" min="200" value="2000">
+    </label>
+  </div>
+
+  <div class="row">
+    <button id="start">ابدأ</button>
+    <button id="cancel" disabled>إيقاف</button>
+    <button id="download" disabled>تنزيل (.txt)</button>
+  </div>
+
+  <div id="progress"></div>
+  <div id="results"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
