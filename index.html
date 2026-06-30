@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Keyword Intelligence Engine PRO v3.0 — نظام متكامل لاستخراج الكلمات المفتاحية وتوليد Dorks الذكية من Yahoo وBing"/>
+  <meta name="author" content="Keyword Intelligence Engine"/>
+  <meta property="og:title" content="Keyword Intelligence Engine PRO v3.0"/>
+  <meta property="og:description" content="استخراج وتحليل الكلمات المفتاحية وتوليد Dorks ذكية من Yahoo وBing"/>
+  <meta property="og:type" content="website"/>
+  <meta name="twitter:title" content="Keyword Intelligence Engine PRO v3.0"/>
+  <meta name="twitter:description" content="استخراج وتحليل الكلمات المفتاحية وتوليد Dorks ذكية"/>
+  <title>Keyword Intelligence Engine PRO v3.0</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script id="structured-data-jsonld" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Keyword Intelligence Engine PRO",
+    "description": "نظام متكامل لاستخراج الكلمات المفتاحية وتوليد Dorks الذكية من Yahoo وBing",
+    "url": "__SITE_URL__"
+  }
+  </script>
+</head>
+<body>
+
+<!-- ══ NOTIFICATIONS ══ -->
+<div class="notif-wrap" id="notif-wrap"></div>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="brand">
+    <button class="icon-btn" id="mobile-menu-btn" style="display:none;"><i class="fa-solid fa-bars"></i></button>
+    <div class="brand-logo"><i class="fa-solid fa-brain" style="color:#fff;"></i></div>
+    <div class="brand-text">
+      <h1>Keyword Intelligence Engine</h1>
+      <span>PRO v3.0 — Yahoo + Bing + Dorks AI</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-badge">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-txt">جاهز</span>
+    </div>
+    <button class="icon-btn" id="theme-toggle" data-tooltip="تبديل المظهر"><i class="fa-solid fa-sun"></i></button>
+    <button class="icon-btn" data-tooltip="الإعدادات"><i class="fa-solid fa-gear"></i></button>
+    <button class="icon-btn" data-tooltip="API Docs"><i class="fa-brands fa-swagger"></i></button>
+  </div>
+</header>
+
+<!-- ══ SHELL ══ -->
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- Search Config -->
+    <div class="sb-section">
+      <div class="sb-title"><i class="fa-solid fa-sliders" style="margin-left:6px;color:var(--cyan)"></i> إعدادات البحث</div>
+
+      <div class="form-group">
+        <label class="form-label">الكلمة أو الاستعلام</label>
+        <input type="text" class="form-input" id="sb-query" placeholder="cybersecurity, admin panel..."/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">محرك البحث</label>
+        <div class="engine-row">
+          <button class="eng-btn" data-eng="yahoo"><i class="fa-brands fa-yahoo"></i> Yahoo</button>
+          <button class="eng-btn" data-eng="bing"><i class="fa-brands fa-microsoft"></i> Bing</button>
+          <button class="eng-btn both" data-eng="both"><i class="fa-solid fa-layer-group"></i> كلاهما</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">عدد النتائج</label>
+        <select class="form-select" id="result-count">
+          <option value="10">10 نتيجة</option>
+          <option value="25">25 نتيجة</option>
+          <option value="50" selected>50 نتيجة</option>
+          <option value="100">100 نتيجة</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Feature Toggles -->
+    <div class="sb-section">
+      <div class="sb-title"><i class="fa-solid fa-microchip" style="margin-left:6px;color:var(--accent)"></i> تقنيات الاستخراج</div>
+      <div class="toggle-list">
+        <div class="tog on" data-feat="keybert">
+          <span class="tog-lbl"><i class="fa-solid fa-robot"></i> KeyBERT</span>
+          <div class="tog-sw"></div>
+        </div>
+        <div class="tog on" data-feat="yake">
+          <span class="tog-lbl"><i class="fa-solid fa-key"></i> YAKE</span>
+          <div class="tog-sw"></div>
+        </div>
+        <div class="tog on" data-feat="gliner">
+          <span class="tog-lbl"><i class="fa-solid fa-tags"></i> GLiNER + spaCy</span>
+          <div class="tog-sw"></div>
+        </div>
+        <div class="tog on" data-feat="tfidf">
+          <span class="tog-lbl"><i class="fa-solid fa-chart-bar"></i> TF-IDF</span>
+          <div class="tog-sw"></div>
+        </div>
+        <div class="tog on" data-feat="clustering">
+          <span class="tog-lbl"><i class="fa-solid fa-object-group"></i> UMAP + HDBSCAN</span>
+          <div class="tog-sw"></div>
+        </div>
+        <div class="tog" data-feat="bm25">
+          <span class="tog-lbl"><i class="fa-solid fa-magnifying-glass-chart"></i> BM25</span>
+          <div class="tog-sw"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Run -->
+    <div class="sb-section">
+      <button class="btn-run" id="sb-run-btn">
+        <i class="fa-solid fa-bolt" id="sb-run-icon"></i>
+        تشغيل التحليل الكامل
+      </button>
+    </div>
+
+    <!-- Stream log -->
+    <div class="sb-section">
+      <div class="sb-title"><i class="fa-solid fa-terminal" style="margin-left:6px;color:var(--green)"></i> سجل البث المباشر</div>
+      <div class="stream-log" id="stream-log"></div>
+    </div>
+
+  </aside>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- Search Hero -->
+    <section class="search-hero">
+      <div class="search-bar">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" class="main-input" id="main-search"
+            placeholder="أدخل كلمة بحث أو استعلام... (مثال: cybersecurity, SQL injection, admin panel)"/>
+        </div>
+        <button class="btn-search" id="run-btn">
+          <i class="fa-solid fa-bolt" id="run-icon"></i> تحليل
+        </button>
+      </div>
+      <!-- Progress -->
+      <div class="prog-wrap" id="prog-wrap">
+        <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="prog-info">
+          <span id="prog-txt">جاري التحليل...</span>
+          <span id="prog-pct">0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card" style="--sc:var(--cyan);--si:var(--cyan-dim);">
+        <div class="stat-icon"><i class="fa-solid fa-key"></i></div>
+        <div>
+          <div class="stat-val" id="stat-words">0</div>
+          <div class="stat-lbl">كلمة مفتاحية</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--sc:var(--accent);--si:rgba(233,69,96,.12);">
+        <div class="stat-icon"><i class="fa-solid fa-database"></i></div>
+        <div>
+          <div class="stat-val" id="stat-sources">0</div>
+          <div class="stat-lbl">مصدر بحث</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--sc:var(--purple);--si:rgba(168,85,247,.12);">
+        <div class="stat-icon"><i class="fa-solid fa-diagram-project"></i></div>
+        <div>
+          <div class="stat-val" id="stat-rels">0</div>
+          <div class="stat-lbl">علاقة معرفية</div>
+        </div>
+      </div>
+      <div class="stat-card" style="--sc:var(--green);--si:var(--green-dim);">
+        <div class="stat-icon"><i class="fa-solid fa-object-group"></i></div>
+        <div>
+          <div class="stat-val" id="stat-clusters">0</div>
+          <div class="stat-lbl">مجموعة كلمات</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Tabs -->
+    <div data-tab-group="main">
+      <div class="tabs">
+        <button class="tab on" data-tab-btn data-group="main" data-pane="dashboard">
+          <i class="fa-solid fa-chart-line"></i> لوحة التحكم
+        </button>
+        <button class="tab" data-tab-btn data-group="main" data-pane="keywords">
+          <i class="fa-solid fa-list"></i> الكلمات المفتاحية
+        </button>
+        <button class="tab" data-tab-btn data-group="main" data-pane="dorks">
+          <i class="fa-solid fa-crosshairs"></i> مولّد Dorks
+        </button>
+        <button class="tab" data-tab-btn data-group="main" data-pane="network">
+          <i class="fa-solid fa-diagram-project"></i> شبكة العلاقات
+        </button>
+        <button class="tab" data-tab-btn data-group="main" data-pane="export">
+          <i class="fa-solid fa-download"></i> تصدير
+        </button>
+      </div>
+
+      <!-- ── TAB: Dashboard ── -->
+      <div class="tab-pane on" data-tab-pane data-group="main" data-pane-id="dashboard">
+        <div class="dash-grid">
+
+          <!-- Bar Chart -->
+          <div class="panel">
+            <div class="ph">
+              <div class="ph-title"><i class="fa-solid fa-chart-bar"></i> أفضل الكلمات المفتاحية</div>
+              <div class="ph-acts">
+                <button class="icon-btn" onclick="renderBarChart()" data-tooltip="تحديث"><i class="fa-solid fa-rotate"></i></button>
+              </div>
+            </div>
+            <div class="pb">
+              <div class="chart-wrap"><canvas id="bar-chart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Donut Chart -->
+          <div class="panel">
+            <div class="ph">
+              <div class="ph-title"><i class="fa-solid fa-chart-pie"></i> توزيع أنواع الكلمات</div>
+            </div>
+            <div class="pb">
+              <div class="chart-wrap"><canvas id="donut-chart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Clusters -->
+          <div class="panel">
+            <div class="ph">
+              <div class="ph-title"><i class="fa-solid fa-object-group"></i> مجموعات الكلمات (Clusters)</div>
+            </div>
+            <div class="pb">
+              <div id="clusters-grid" class="clusters-grid">
+                <div class="empty"><i class="fa-solid fa-circle-nodes"></i><p>ابدأ البحث لرؤية المجموعات</p></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Dorks Preview -->
+          <div class="panel">
+            <div class="ph">
+              <div class="ph-title"><i class="fa-solid fa-crosshairs"></i> معاينة Dorks</div>
+              <div class="ph-acts">
+                <span class="pill" id="dork-count-pill">0</span>
+              </div>
+            </div>
+            <div class="pb" style="padding:0;">
+              <div class="dorks-out" id="dorks-preview" style="max-height:220px;border:none;border-radius:0;">
+                <div class="empty" style="padding:24px;">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  <p>ابدأ البحث لتوليد Dorks تلقائياً</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── TAB: Keywords ── -->
+      <div class="tab-pane" data-tab-pane data-group="main" data-pane-id="keywords">
+        <div class="panel wide">
+          <div class="ph">
+            <div class="ph-title"><i class="fa-solid fa-list-ol"></i> جدول الكلمات المفتاحية المستخرجة</div>
+            <div class="ph-acts">
+              <button class="icon-btn" onclick="renderKeywordsTable()" data-tooltip="تحديث"><i class="fa-solid fa-rotate"></i></button>
+              <button class="icon-btn" onclick="exportCSV()" data-tooltip="تصدير CSV"><i class="fa-solid fa-file-csv"></i></button>
+            </div>
+          </div>
+          <div class="pb" style="padding:0;">
+            <div style="overflow-x:auto;">
+              <table class="kw-tbl">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>الكلمة المفتاحية</th>
+                    <th>النوع</th>
+                    <th style="min-width:140px;">درجة الفرصة</th>
+                    <th>التكرار</th>
+                    <th>المصدر</th>
+                  </tr>
+                </thead>
+                <tbody id="kw-tbody">
+                  <tr>
+                    <td colspan="6">
+                      <div class="empty" style="padding:32px;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <h3>لا توجد بيانات</h3>
+                        <p>ابدأ عملية البحث والتحليل لرؤية الكلمات المفتاحية المستخرجة</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: Dorks ── -->
+      <div class="tab-pane" data-tab-pane data-group="main" data-pane-id="dorks">
+        <div class="panel wide">
+          <div class="ph">
+            <div class="ph-title"><i class="fa-solid fa-crosshairs"></i> مولّد Dorks الذكي</div>
+            <div class="ph-acts">
+              <button class="icon-btn" id="copy-all-dorks" data-tooltip="نسخ الكل"><i class="fa-regular fa-copy"></i></button>
+              <button class="icon-btn" onclick="exportDorksTXT()" data-tooltip="تصدير TXT"><i class="fa-solid fa-file-lines"></i></button>
+            </div>
+          </div>
+          <div class="pb">
+
+            <!-- Builder -->
+            <div class="dork-builder">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">الهدف (Domain أو Keyword)</label>
+                <input type="text" class="form-input" id="dork-target" placeholder="target.com أو كلمة مفتاحية"/>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">عدد Dorks</label>
+                <select class="form-select" style="width:90px;" id="dork-count-sel">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="20">20</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;align-self:end;">
+                <button class="btn-search" id="generate-dorks-btn" style="white-space:nowrap;">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> توليد
+                </button>
+              </div>
+            </div>
+
+            <!-- Dork Type Cards -->
+            <div class="dork-type-grid">
+              <div class="dt-card" data-type="sqli">
+                <div class="dt-icon">🔍</div>
+                <div class="dt-name">SQL Injection</div>
+                <div class="dt-cnt">5 dorks</div>
+              </div>
+              <div class="dt-card" data-type="xss">
+                <div class="dt-icon">💥</div>
+                <div class="dt-name">XSS</div>
+                <div class="dt-cnt">5 dorks</div>
+              </div>
+              <div class="dt-card" data-type="lfi">
+                <div class="dt-icon">📁</div>
+                <div class="dt-name">LFI / RFI</div>
+                <div class="dt-cnt">4 dorks</div>
+              </div>
+              <div class="dt-card" data-type="admin">
+                <div class="dt-icon">🔐</div>
+                <div class="dt-name">Admin Panels</div>
+                <div class="dt-cnt">5 dorks</div>
+              </div>
+              <div class="dt-card" data-type="sensitive">
+                <div class="dt-icon">🗄️</div>
+                <div class="dt-name">Sensitive Files</div>
+                <div class="dt-cnt">5 dorks</div>
+              </div>
+              <div class="dt-card" data-type="dir">
+                <div class="dt-icon">📂</div>
+                <div class="dt-name">Dir Listing</div>
+                <div class="dt-cnt">4 dorks</div>
+              </div>
+            </div>
+
+            <!-- Dorks Output -->
+            <div class="dorks-out" id="dorks-out">
+              <div class="empty" style="padding:32px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <h3>جاهز للتوليد</h3>
+                <p>أدخل الهدف، اختر نوع Dork، ثم اضغط "توليد"</p>
+              </div>
+            </div>
+
+            <!-- Dork Examples (always visible) -->
+            <div style="margin-top:16px;">
+              <div class="sb-title" style="margin-bottom:8px;"><i class="fa-solid fa-book-open" style="margin-left:6px;color:var(--yellow)"></i> أمثلة على Dorks المولدة</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="panel" style="border-color:rgba(233,69,96,.2);">
+                  <div class="ph" style="padding:8px 12px;"><div class="ph-title" style="font-size:10px;"><i class="fa-solid fa-database" style="color:var(--accent)"></i> SQL Injection</div></div>
+                  <div class="pb" style="padding:8px;">
+                    <div style="font-family:var(--font-mono);font-size:9px;color:var(--cyan);line-height:1.8;direction:ltr;">
+                      <div><span style="color:var(--accent)">site:</span>target.com <span style="color:var(--accent)">inurl:</span><span style="color:var(--green)">product.php?id=</span></div>
+                      <div><span style="color:var(--accent)">site:</span>target.com <span style="color:var(--accent)">inurl:</span><span style="color:var(--green)">article.php?id=</span></div>
+                      <div><span style="color:var(--accent)">site:</span>target.com <span style="color:var(--green)">"SELECT * FROM"</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel" style="border-color:rgba(0,212,255,.2);">
+                  <div class="ph" style="padding:8px 12px;"><div class="ph-title" style="font-size:10px;"><i class="fa-solid fa-lock-open" style="color:var(--cyan)"></i> Admin Panels</div></div>
+                  <div class="pb" style="padding:8px;">
+                    <div style="font-family:var(--font-mono);font-size:9px;color:var(--cyan);line-height:1.8;direction:ltr;">
+                      <div><span style="color:var(--accent)">site:</span>target.com <span style="color:var(--accent)">inurl:</span><span style="color:var(--green)">admin</span></div>
+                      <div><span style="color:var(--accent)">site:</span>target.com <span style="color:var(--accent)">inurl:</span><span style="color:var(--green)">wp-admin</span></div>
+                      <div><span style="color:var(--accent)">site:</span>target.com <span style="color:var(--accent)">intitle:</span><span style="color:var(--green)">"Admin Panel"</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: Network ── -->
+      <div class="tab-pane" data-tab-pane data-group="main" data-pane-id="network">
+        <div class="panel wide">
+          <div class="ph">
+            <div class="ph-title"><i class="fa-solid fa-diagram-project"></i> شبكة علاقات الكلمات المفتاحية</div>
+            <div class="ph-acts">
+              <button class="icon-btn" onclick="renderNetwork()" data-tooltip="إعادة رسم"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+          </div>
+          <div class="pb">
+            <canvas id="net-canvas"></canvas>
+            <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:10px;color:var(--text-muted);font-family:var(--font-mono);">
+              <span><span style="color:var(--accent);">●</span> عقدة محورية (HUB)</span>
+              <span><span style="color:var(--cyan);">●</span> كلمة مفتاحية</span>
+              <span style="color:var(--text-muted);">─ علاقة معرفية</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: Export ── -->
+      <div class="tab-pane" data-tab-pane data-group="main" data-pane-id="export">
+        <div class="panel wide">
+          <div class="ph">
+            <div class="ph-title"><i class="fa-solid fa-file-export"></i> تصدير النتائج والتقارير</div>
+          </div>
+          <div class="pb">
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">اختر صيغة التصدير المناسبة لاستخدام البيانات المحللة</p>
+            <div class="export-grid">
+              <div class="ex-card" id="exp-json">
+                <i class="fa-solid fa-file-code"></i>
+                <div class="ex-name">JSON</div>
+                <div class="ex-desc">كلمات + Dorks + Clusters</div>
+              </div>
+              <div class="ex-card" id="exp-csv">
+                <i class="fa-solid fa-file-csv"></i>
+                <div class="ex-name">CSV</div>
+                <div class="ex-desc">جدول الكلمات المفتاحية</div>
+              </div>
+              <div class="ex-card" id="exp-dorks">
+                <i class="fa-solid fa-file-lines"></i>
+                <div class="ex-name">Dorks TXT</div>
+                <div class="ex-desc">قائمة Dorks للاستخدام المباشر</div>
+              </div>
+              <div class="ex-card" id="exp-report">
+                <i class="fa-solid fa-file-alt"></i>
+                <div class="ex-name">تقرير نصي</div>
+                <div class="ex-desc">تقرير تحليلي شامل TXT</div>
+              </div>
+            </div>
+
+            <!-- API Docs Section -->
+            <div style="margin-top:24px;">
+              <div class="sb-title" style="margin-bottom:12px;"><i class="fa-solid fa-code" style="margin-left:6px;color:var(--cyan)"></i> توثيق API (Swagger/OpenAPI)</div>
+              <div class="dash-grid">
+                <div class="panel">
+                  <div class="ph"><div class="ph-title" style="font-size:11px;"><i class="fa-solid fa-route"></i> نقاط النهاية</div></div>
+                  <div class="pb">
+                    <div style="font-family:var(--font-mono);font-size:10px;line-height:2;direction:ltr;">
+                      <div><span style="color:var(--green);font-weight:700;">POST</span> <span style="color:var(--cyan);">/api/v1/search</span></div>
+                      <div><span style="color:var(--cyan);font-weight:700;">GET</span>  <span style="color:var(--cyan);">/api/v1/keywords</span></div>
+                      <div><span style="color:var(--cyan);font-weight:700;">GET</span>  <span style="color:var(--cyan);">/api/v1/dorks</span></div>
+                      <div><span style="color:var(--green);font-weight:700;">POST</span> <span style="color:var(--cyan);">/api/v1/reports</span></div>
+                      <div><span style="color:var(--cyan);font-weight:700;">GET</span>  <span style="color:var(--cyan);">/api/v1/export/{format}</span></div>
+                      <div><span style="color:var(--yellow);font-weight:700;">WS</span>   <span style="color:var(--cyan);">/api/stream</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="ph"><div class="ph-title" style="font-size:11px;"><i class="fa-solid fa-terminal"></i> مثال استخدام</div></div>
+                  <div class="pb">
+                    <div style="font-family:var(--font-mono);font-size:9px;color:var(--cyan);direction:ltr;line-height:1.8;background:var(--bg-deep);padding:10px;border-radius:6px;overflow-x:auto;">
+<pre style="margin:0;white-space:pre-wrap;">curl -X POST /api/v1/search \
+  -H "X-API-Key: your_key" \
+  -d '{
+    "query": "cybersecurity",
+    "engine": "both",
+    "limit": 50,
+    "features": ["keybert","yake"]
+  }'</pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end tab-group -->
+
+    <!-- Footer -->
+    <footer style="text-align:center;padding:12px;font-size:10px;color:var(--text-muted);font-family:var(--font-mono);border-top:1px solid var(--border);">
+      Keyword Intelligence Engine PRO v3.0 &mdash; Yahoo &amp; Bing &mdash; KeyBERT · YAKE · GLiNER · UMAP · HDBSCAN
+    </footer>
+
+  </main>
+</div>
+
+<script type="module" src="assets/main.js"></script>
+<!-- Mobile menu show -->
+<script>
+  if(window.innerWidth<=1024){
+    document.getElementById('mobile-menu-btn').style.display='flex';
+  }
+  window.addEventListener('resize',()=>{
+    const btn=document.getElementById('mobile-menu-btn');
+    if(btn) btn.style.display=window.innerWidth<=1024?'flex':'none';
+  });
+  // Sync dorks preview with main output
+  const observer=new MutationObserver(()=>{
+    const main=document.getElementById('dorks-out');
+    const prev=document.getElementById('dorks-preview');
+    const pill=document.getElementById('dork-count-pill');
+    if(main&&prev){
+      const lines=main.querySelectorAll('.dork-line').length;
+      if(lines>0){
+        prev.innerHTML=main.innerHTML;
+        if(pill) pill.textContent=lines;
+      }
+    }
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    const el=document.getElementById('dorks-out');
+    if(el) observer.observe(el,{childList:true,subtree:true});
+  });
+</script>
+
+</body>
+</html>
