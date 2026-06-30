@@ -78,12 +78,8 @@
 
       <div class="form-group">
         <label class="form-label">عدد النتائج</label>
-        <select class="form-select" id="result-count">
-          <option value="10">10 نتيجة</option>
-          <option value="25">25 نتيجة</option>
-          <option value="50" selected>50 نتيجة</option>
-          <option value="100">100 نتيجة</option>
-        </select>
+        <input type="number" class="form-input" id="result-count" min="1" max="1000" value="50" placeholder="مثال: 1000"/>
+        <small class="form-note">أدخل عدد النتائج المراد جلبها من محركات البحث</small>
       </div>
     </div>
 
@@ -337,9 +333,16 @@
                   <option value="20">20</option>
                 </select>
               </div>
-              <div class="form-group" style="margin:0;align-self:end;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">عدد روابط URL</label>
+                <input type="number" class="form-input" id="dork-url-count" min="1" max="200" value="10" placeholder="10" style="width:100%;"/>
+              </div>
+              <div class="form-group" style="margin:0;align-self:end; display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn-search" id="generate-dorks-btn" style="white-space:nowrap;">
                   <i class="fa-solid fa-wand-magic-sparkles"></i> توليد
+                </button>
+                <button class="btn-search" id="generate-dork-urls-btn" style="white-space:nowrap;background:var(--accent);">
+                  <i class="fa-solid fa-link"></i> جلب الروابط
                 </button>
               </div>
             </div>
@@ -376,21 +379,11 @@
                 <div class="dt-name">Dir Listing</div>
                 <div class="dt-cnt">4 dorks</div>
               </div>
-            </div>
-
-            <!-- Dorks Output -->
-            <div class="dorks-out" id="dorks-out">
-              <div class="empty" style="padding:32px;">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <h3>جاهز للتوليد</h3>
-                <p>أدخل الهدف، اختر نوع Dork، ثم اضغط "توليد"</p>
-              </div>
-            </div>
-
-            <!-- Dork Examples (always visible) -->
-            <div style="margin-top:16px;">
-              <div class="sb-title" style="margin-bottom:8px;"><i class="fa-solid fa-book-open" style="margin-left:6px;color:var(--yellow)"></i> أمثلة على Dorks المولدة</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="dt-card" data-type="hqi">
+                  <div class="dt-icon">⚡</div>
+                  <div class="dt-name">HQI Dorks</div>
+                  <div class="dt-cnt">8 dorks</div>
+                </div>
                 <div class="panel" style="border-color:rgba(233,69,96,.2);">
                   <div class="ph" style="padding:8px 12px;"><div class="ph-title" style="font-size:10px;"><i class="fa-solid fa-database" style="color:var(--accent)"></i> SQL Injection</div></div>
                   <div class="pb" style="padding:8px;">
