@@ -1,0 +1,77 @@
+{
+  "name": "dork-link-collector",
+  "version": "1.0.0",
+  "description": "Dork Link Collector - Browser Extension for collecting URLs from search engines",
+  "main": "background.js",
+  "scripts": {
+    "test": "jest --testTimeout=10000",
+    "test:watch": "jest --watch --testTimeout=10000",
+    "test:coverage": "jest --coverage --testTimeout=10000",
+    "test:unit": "jest tests/unit/ --testTimeout=10000",
+    "test:integration": "jest tests/integration/ --testTimeout=10000",
+    "test:security": "jest tests/security/ --testTimeout=10000",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "keywords": [
+    "chrome-extension",
+    "dork",
+    "link-collector",
+    "search-engine",
+    "web-scraping"
+  ],
+  "author": "husseinshu67-del",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "@types/jest": "^29.5.11",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!**/node_modules/**",
+      "!**/tests/**",
+      "!**/coverage/**"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js",
+      "**/tests/**/*.spec.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup.js"
+    ],
+    "testTimeout": 10000,
+    "verbose": true,
+    "clearMocks": true,
+    "restoreMocks": true
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "jest": true
+    },
+    "extends": [
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "warn",
+      "no-unused-vars": "warn",
+      "prefer-const": "error"
+    }
+  }
+}
